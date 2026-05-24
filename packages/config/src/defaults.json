@@ -1,0 +1,8 @@
+{
+  "app_name": "AI Coach",
+  "primary_color": "#111111",
+  "logo_url": "/logo.svg",
+  "coach_name": "Tu Coach",
+  "default_language": "es",
+  "memory_enabled_by_default": true
+}
