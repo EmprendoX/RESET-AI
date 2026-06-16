@@ -1,8 +1,8 @@
 {
-  "app_name": "AI Coach",
-  "primary_color": "#111111",
+  "app_name": "RESET-ORDER",
+  "primary_color": "#2f7bff",
   "logo_url": "/logo.svg",
-  "coach_name": "Tu Coach",
+  "coach_name": "Coach RESET-ORDER",
   "default_language": "es",
   "memory_enabled_by_default": true
 }

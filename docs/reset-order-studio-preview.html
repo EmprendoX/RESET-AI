@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RESET-ORDER · Studio — Conocimiento y Memoria</title>
+<style>
+  :root{--bg:#07080b;--surface:#101218;--surface2:#161922;--surface3:#1d212c;
+    --border:#262b38;--bordersoft:#1c2029;--ink:#f4f6fb;--muted:#9aa3b4;--faint:#5e6678;
+    --accent:#2f7bff;--accentHi:#5b9bff;--accentLo:#1e5fe0;--success:#2fd486;--warning:#ffb020;--danger:#ff5470;--purple:#b07bff}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(900px 500px at 80% -10%,rgba(47,123,255,.14),transparent 60%)}
+  .wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),var(--surface);border:1px solid var(--bordersoft);border-radius:1.25rem;padding:16px;margin-bottom:12px}
+  .grad{background:linear-gradient(135deg,var(--accentHi),var(--accentLo))}
+  .tabs{display:flex;gap:8px;margin-bottom:20px}
+  .tab{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--muted)}
+  .tab.on{border-color:rgba(47,123,255,.5);background:rgba(47,123,255,.15);color:var(--ink)}
+  .kick{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:22px;font-weight:800;margin:4px 0}
+  h2{font-size:16px;font-weight:800;margin:22px 0 10px}
+  .sub{color:var(--muted);font-size:13px}
+  .btn{border-radius:12px;font-weight:700;font-size:13px;padding:9px 15px;color:#fff;border:none;background:linear-gradient(135deg,var(--accentHi),var(--accentLo))}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  .kpi{background:var(--surface);border:1px solid var(--bordersoft);border-radius:14px;padding:14px}
+  .kpi .n{font-size:22px;font-weight:800}.kpi .l{font-size:12px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start}
+  .src{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--bordersoft);background:var(--surface);border-radius:16px;margin-bottom:10px}
+  .sic{width:40px;height:40px;border-radius:12px;background:var(--surface3);display:grid;place-items:center;font-size:18px}
+  .badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700}
+  .st{margin-left:auto;font-size:12px;font-weight:700;white-space:nowrap}
+  .cite{display:flex;gap:8px;align-items:center;border:1px solid var(--bordersoft);background:var(--surface);border-radius:10px;padding:6px 10px;font-size:12px;margin-top:6px}
+  .m{padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;display:inline-block}
+  .pill{border-radius:999px;background:rgba(47,123,255,.15);color:var(--accent);font-size:10px;font-weight:800;padding:3px 9px}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .mem{display:flex;gap:12px;padding:14px;border:1px solid var(--bordersoft);background:var(--surface);border-radius:16px;margin-bottom:10px}
+  .toggle{width:36px;height:20px;border-radius:99px;position:relative;flex:none}
+  .toggle .k{position:absolute;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+  .memberbtn{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--bordersoft);background:var(--surface);border-radius:14px;margin-bottom:8px}
+  .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;font-size:13px}
+  .on2{border-color:rgba(47,123,255,.5);background:rgba(47,123,255,.12)}
+  .small{font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs"><div class="tab">🧭 Persona</div><div class="tab on">📚 Conocimiento</div><div class="tab">🧠 Memoria</div></div>
+
+  <!-- CONOCIMIENTO -->
+  <div class="head">
+    <div><div class="kick">Creator Studio</div><h1>Base de conocimiento</h1>
+      <div class="sub">Tu coach responde fundado en tu material, con citas.</div></div>
+    <button class="btn">+ Subir fuente</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="n">5</div><div class="l">Fuentes</div></div>
+    <div class="kpi"><div class="n" style="color:var(--accent)">4</div><div class="l">Indexadas</div></div>
+    <div class="kpi"><div class="n">316</div><div class="l">Fragmentos</div></div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="src"><div class="sic">🎓</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">Curso: El Sistema RESET-ORDER</div>
+        <div class="small"><span class="badge" style="color:var(--accentHi);background:rgba(91,155,255,.12)">Curso</span> 12 lecciones · 184 fragmentos</div></div>
+        <div class="st" style="color:var(--success)">● Indexado</div></div>
+      <div class="src"><div class="sic">🎬</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">Masterclass: Oferta de 90 días</div>
+        <div class="small"><span class="badge" style="color:var(--warning);background:rgba(255,176,32,.12)">Video</span> 96 fragmentos</div></div>
+        <div class="st" style="color:var(--success)">● Indexado</div></div>
+      <div class="src"><div class="sic">📄</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">Guía: Rutina matutina de 10 min</div>
+        <div class="small"><span class="badge" style="color:var(--danger);background:rgba(255,84,112,.12)">PDF</span> 22 fragmentos</div></div>
+        <div class="st" style="color:var(--success)">● Indexado</div></div>
+      <div class="src"><div class="sic">🎓</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">Curso: Constancia sobre intensidad</div>
+        <div class="small"><span class="badge" style="color:var(--accentHi);background:rgba(91,155,255,.12)">Curso</span> 8 lecciones</div></div>
+        <div class="st" style="color:var(--warning)">● Procesando</div></div>
+    </div>
+    <div>
+      <div class="head"><h2 style="margin:0">Qué sabe tu agente</h2><span class="pill">VISTA MIEMBRO</span></div>
+      <div class="card">
+        <div style="text-align:right;margin-bottom:10px"><span class="m grad" style="color:#fff">¿Cómo armo mi rutina de la mañana?</span></div>
+        <div class="m" style="background:var(--surface2);border:1px solid var(--bordersoft)">Empezá con 10 minutos sin pantalla y una intención clara. No sumes más hábitos hasta que ese esté firme — constancia sobre intensidad.</div>
+        <div style="margin-top:10px"><div class="small" style="font-weight:700;text-transform:uppercase;font-size:10px;margin-bottom:4px">Fuentes citadas</div>
+          <div class="cite"><span style="color:var(--accent)">🔗</span><b>Guía: Rutina matutina</b><span style="color:var(--faint)">· Paso 1 · El reset</span></div>
+          <div class="cite"><span style="color:var(--accent)">🔗</span><b>Curso: RESET-ORDER</b><span style="color:var(--faint)">· Lección 3 · Apilar hábitos</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMORIA -->
+  <div style="border-top:1px solid var(--bordersoft);margin:32px 0 0;padding-top:24px"></div>
+  <div class="tabs"><div class="tab">🧭 Persona</div><div class="tab">📚 Conocimiento</div><div class="tab on">🧠 Memoria</div></div>
+  <div class="kick">Creator Studio</div><h1>Memoria</h1>
+  <div class="sub" style="margin-bottom:16px">Lo que tu coach recuerda — de tu marca y de cada miembro. El miembro decide qué se guarda.</div>
+  <div class="grid">
+    <div style="order:2">
+      <div class="head"><h2 style="margin:0">Lo que el coach recuerda de Lucía R.</h2><span class="pill">VISTA MIEMBRO</span></div>
+      <div class="mem"><div style="flex:1">
+        <div><span class="badge" style="color:var(--accent);background:rgba(47,123,255,.15)">meta</span> <span class="small">Onboarding · hace 3 sem</span></div>
+        <div style="font-size:13px;margin-top:6px">Quiere lanzar su tienda online en 90 días.</div></div>
+        <div style="display:flex;flex-direction:column;align-items:end;gap:8px"><div class="toggle" style="background:var(--success)"><div class="k" style="left:18px"></div></div><span class="small" style="color:var(--faint)">Olvidar</span></div>
+      </div>
+      <div class="mem"><div style="flex:1">
+        <div><span class="badge" style="color:var(--danger);background:rgba(255,84,112,.15)">bloqueo</span> <span class="small">Chat · 12 jun</span></div>
+        <div style="font-size:13px;margin-top:6px">Se traba con el perfeccionismo al crear contenido.</div></div>
+        <div style="display:flex;flex-direction:column;align-items:end;gap:8px"><div class="toggle" style="background:var(--success)"><div class="k" style="left:18px"></div></div><span class="small" style="color:var(--faint)">Olvidar</span></div>
+      </div>
+      <div class="mem"><div style="flex:1">
+        <div><span class="badge" style="color:var(--purple);background:rgba(176,123,255,.15)">preferencia</span> <span class="small">Chat · hace 1 sem</span></div>
+        <div style="font-size:13px;margin-top:6px">Prefiere mensajes cortos y por la mañana.</div></div>
+        <div style="display:flex;flex-direction:column;align-items:end;gap:8px"><div class="toggle" style="background:var(--surface3)"><div class="k" style="left:2px"></div></div><span class="small" style="color:var(--faint)">Olvidar</span></div>
+      </div>
+    </div>
+    <div style="order:1">
+      <h2 style="margin-top:0">Comunidad</h2>
+      <div class="memberbtn on2"><div class="av grad">L</div><div><div style="font-weight:700;font-size:13px">Lucía R.</div><div class="small">6 recuerdos · hace 3 sem</div></div></div>
+      <div class="memberbtn"><div class="av grad">M</div><div><div style="font-weight:700;font-size:13px">Marcos T.</div><div class="small">9 recuerdos · hace 1 mes</div></div></div>
+      <div class="memberbtn"><div class="av grad">S</div><div><div style="font-weight:700;font-size:13px">Sofía V.</div><div class="small">3 recuerdos · hace 5 días</div></div></div>
+    </div>
+  </div>
+  <div class="small" style="text-align:center;margin-top:16px;color:var(--faint)">El interruptor verde = consentimiento del miembro. Sin consentimiento, no se usa.</div>
+</div>
+</body>
+</html>

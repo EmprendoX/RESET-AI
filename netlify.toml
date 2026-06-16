@@ -1,0 +1,31 @@
+# Netlify — RESET-AI (app del coach). Se despliega como SITIO APARTE,
+# no toca el sitio de la comunidad RESET-ORDER.
+# El plugin oficial de Next.js maneja App Router, API routes y middleware
+# (los convierte en funciones serverless automáticamente).
+
+[build]
+  # Build desde la raíz del monorepo: npm install resuelve los workspaces
+  # y "npm run build" corre -w @ai-coach/web (ver package.json).
+  command = "npm run build"
+  # Output del Next app dentro del monorepo. El plugin lo lee desde acá.
+  publish = "apps/web/.next"
+
+[build.environment]
+  # La app pide Node >=20 (ver "engines" en package.json).
+  NODE_VERSION = "20"
+
+# Runtime oficial de Next.js en Netlify. Usá siempre la última versión
+# (importante: la app es Next.js 16).
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Recordatorio de variables a cargar en Netlify → Site settings → Environment variables
+# (NO se commitean; van en el panel, scope production + deploy previews):
+#   NEXT_PUBLIC_SUPABASE_URL
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   SUPABASE_SERVICE_ROLE_KEY
+#   OPENAI_API_KEY
+#   OPENAI_CHAT_MODEL          (ej. gpt-4o-mini)
+#   EMBEDDING_MODEL            (ej. text-embedding-3-small)
+#   AI_COACH_DAILY_MESSAGE_LIMIT (ej. 30)
+#   AUTH_ENABLED               (arrancá en "false"; "true" SOLO tras validar)

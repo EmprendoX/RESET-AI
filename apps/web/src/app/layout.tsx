@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Coach",
-  description: "Tu coach personal con inteligencia artificial",
+  title: "RESET-ORDER · Coach",
+  description: "Tu coach de RESET-ORDER: orden, reset y crecimiento. Cumple tu sistema día a día.",
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full bg-neutral-50 text-neutral-900">{children}</body>
+      <body className="min-h-full bg-bg text-ink">{children}</body>
     </html>
   );
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { signupSchema } from "@ai-coach/db";
-import { createServiceClient, emitEvent } from "@ai-coach/db";
+import { createServiceClient, emitEvent, ensureCoachProfile, ensureCreatorWorkspace } from "@ai-coach/db";
 import { generateIdempotencyKey } from "@ai-coach/shared";
 
 export async function POST(request: Request) {
@@ -24,6 +24,13 @@ export async function POST(request: Request) {
 
   if (data.user) {
     const service = createServiceClient();
+    const profileUser = {
+      id: data.user.id,
+      email: data.user.email ?? parsed.data.email,
+      name: parsed.data.name,
+    };
+    await ensureCoachProfile(service, profileUser);
+    await ensureCreatorWorkspace(service, profileUser);
     await emitEvent(service, {
       userId: data.user.id,
       eventType: "user_signed_up",

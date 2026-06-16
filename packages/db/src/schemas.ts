@@ -95,3 +95,80 @@ export const settingsUpdateSchema = z.object({
   language: z.string().optional(),
   timezone: z.string().optional(),
 });
+
+export const personaSchema = z.object({
+  coach_name: z.string().min(1).max(80),
+  tagline: z.string().max(160).optional().nullable(),
+  avatar: z.string().max(8).optional().nullable(),
+  tone: z
+    .object({
+      directo: z.number().min(0).max(100),
+      cercano: z.number().min(0).max(100),
+      detallado: z.number().min(0).max(100),
+      motivador: z.number().min(0).max(100),
+    })
+    .partial()
+    .optional(),
+  voice: z.string().max(1000).optional().nullable(),
+  values: z.array(z.string()).max(20).optional(),
+  signature_phrases: z.array(z.string()).max(20).optional(),
+  dos: z.array(z.string()).max(20).optional(),
+  donts: z.array(z.string()).max(20).optional(),
+  methodology: z.string().max(2000).optional().nullable(),
+  sample_replies: z
+    .array(z.object({ q: z.string(), a: z.string() }))
+    .max(10)
+    .optional(),
+  is_published: z.boolean().optional(),
+});
+
+export const personaPreviewSchema = z.object({
+  message: z.string().min(1).max(2000),
+  persona: personaSchema,
+});
+
+export const knowledgeSourceSchema = z.object({
+  title: z.string().min(1).max(200),
+  type: z.enum(["curso", "pdf", "video", "post"]),
+  content: z.string().min(1).max(200000),
+});
+
+export const coachMemorySchema = z.object({
+  scope: z.enum(["persona", "miembro"]).default("miembro"),
+  member_user_id: z.string().uuid().optional().nullable(),
+  type: z.string().min(1).max(40),
+  content: z.string().min(1).max(2000),
+  source: z.string().max(120).optional(),
+  consent: z.boolean().optional(),
+});
+
+export const memoryConsentSchema = z.object({ consent: z.boolean() });
+
+export const habitCreateSchema = z.object({
+  title: z.string().min(1).max(120),
+  description: z.string().max(300).optional(),
+  category: z.enum(["mente", "cuerpo", "negocio", "orden"]).default("mente"),
+  time: z.string().max(20).optional(),
+  icon: z.string().max(8).optional(),
+});
+
+export const noteCreateSchema = z.object({
+  kind: z.enum(["nota", "conversacion"]).default("nota"),
+  title: z.string().min(1).max(200),
+  body: z.string().max(20000).default(""),
+  tags: z.array(z.string()).max(20).optional(),
+});
+
+export const taskCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+  note: z.string().max(500).optional(),
+  priority: z.enum(["alta", "media", "baja"]).default("media"),
+  due: z.string().max(40).optional(),
+  linked_habit: z.string().max(120).optional(),
+});
+
+export const taskUpdateSchema = z.object({
+  status: z.enum(["pendiente", "en_curso", "hecha"]).optional(),
+  title: z.string().min(1).max(200).optional(),
+  priority: z.enum(["alta", "media", "baja"]).optional(),
+});

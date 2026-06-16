@@ -9,6 +9,7 @@ export async function createClient(): Promise<SupabaseClient> {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      db: { schema: "ai_coach" },
       cookies: {
         getAll() {
           return cookieStore.getAll();

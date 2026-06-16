@@ -1,84 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { Button, Card, Input, PageHeader } from "@ai-coach/ui";
+import { user } from "@/lib/mock-data";
+
+const STYLES = [
+  { id: "directo", label: "Directo" },
+  { id: "suave", label: "Suave" },
+  { id: "estrategico", label: "Estratégico" },
+  { id: "practico", label: "Práctico" },
+  { id: "motivador", label: "Motivador" },
+];
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
-    name: "",
-    coaching_style: "practico",
-    memory_enabled: true,
-    language: "es",
-    timezone: "",
-  });
+  const [name, setName] = useState(user.name);
+  const [style, setStyle] = useState("practico");
+  const [memory, setMemory] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.settings) setSettings(d.settings);
-      });
-  }, []);
-
-  async function handleSave() {
-    const res = await fetch("/api/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: settings.name,
-        coaching_style: settings.coaching_style,
-        memory_enabled: settings.memory_enabled,
-        language: settings.language,
-        timezone: settings.timezone,
-      }),
-    });
-    if (res.ok) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    }
+  function save() {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
   }
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-xl">
-        <h1 className="mb-4 text-xl font-semibold">Settings</h1>
-        <div className="space-y-4 rounded-lg border bg-white p-6">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Nombre</label>
-            <input
-              value={settings.name ?? ""}
-              onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-              className="w-full rounded-lg border px-3 py-2 text-sm"
-            />
+      <PageHeader title="Ajustes" subtitle="Configurá tu coach y tu cuenta." />
+
+      <div className="mx-auto max-w-xl space-y-5">
+        <Card>
+          <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-ink-muted">Perfil</h3>
+          <label className="mb-1.5 block text-sm font-medium">Nombre</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+          <label className="mb-1.5 mt-4 block text-sm font-medium">Correo</label>
+          <Input value={user.email} disabled className="opacity-60" />
+        </Card>
+
+        <Card>
+          <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-ink-muted">Coach</h3>
+          <label className="mb-2 block text-sm font-medium">Estilo del coach</label>
+          <div className="flex flex-wrap gap-2">
+            {STYLES.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setStyle(s.id)}
+                className={`rounded-xl border px-3.5 py-1.5 text-sm transition ${
+                  style === s.id
+                    ? "border-accent/50 bg-accent/15 text-ink"
+                    : "border-border bg-surface-2 text-ink-muted hover:text-ink"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Estilo de coach</label>
-            <select
-              value={settings.coaching_style ?? "practico"}
-              onChange={(e) => setSettings({ ...settings, coaching_style: e.target.value })}
-              className="w-full rounded-lg border px-3 py-2 text-sm"
+
+          <label className="mt-5 flex items-center justify-between">
+            <span className="text-sm">
+              <span className="font-medium">Memoria personalizada</span>
+              <span className="block text-xs text-ink-muted">El coach recuerda lo que vos autorices.</span>
+            </span>
+            <button
+              onClick={() => setMemory((v) => !v)}
+              className={`relative h-6 w-11 rounded-full transition ${memory ? "bg-accent" : "bg-surface-3"}`}
             >
-              {["directo", "suave", "estrategico", "practico", "motivador"].map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={settings.memory_enabled ?? false}
-              onChange={(e) => setSettings({ ...settings, memory_enabled: e.target.checked })}
-            />
-            Activar memoria personalizada
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${memory ? "left-[22px]" : "left-0.5"}`} />
+            </button>
           </label>
-          <button
-            onClick={handleSave}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm text-white"
-          >
-            Guardar cambios
-          </button>
-          {saved && <p className="text-sm text-green-600">Guardado</p>}
+        </Card>
+
+        <div className="flex items-center gap-3">
+          <Button onClick={save}>Guardar cambios</Button>
+          {saved && <span className="text-sm text-success">✓ Guardado</span>}
         </div>
       </div>
     </AppShell>

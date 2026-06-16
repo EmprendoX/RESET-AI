@@ -2,78 +2,47 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Button, Input } from "@ai-coach/ui";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error ?? "Error al iniciar sesión");
-      return;
-    }
-
+    // Prototipo: sin backend, entra directo al panel.
     router.push("/");
-    router.refresh();
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-2 text-2xl font-semibold">AI Coach</h1>
-        <p className="mb-6 text-sm text-neutral-500">Inicia sesión para continuar</p>
+    <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+      <div className="ro-card ro-fade-up w-full max-w-md p-8">
+        <div className="mb-6 flex items-center gap-3">
+          <Image src="/logo.svg" alt="RESET-ORDER" width={44} height={44} className="rounded-xl" />
+          <div>
+            <div className="ro-wordmark text-base">RESET-ORDER</div>
+            <div className="text-[10px] uppercase tracking-widest text-accent">Coach</div>
+          </div>
+        </div>
+        <h1 className="mb-1 text-2xl font-bold">Bienvenido de vuelta</h1>
+        <p className="mb-6 text-sm text-ink-muted">Iniciá sesión para seguir tu sistema.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
-              required
-            />
+            <label className="mb-1.5 block text-sm font-medium">Correo</label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
-              required
-            />
+            <label className="mb-1.5 block text-sm font-medium">Contraseña</label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
-          >
-            {loading ? "Entrando..." : "Iniciar sesión"}
-          </button>
+          <Button type="submit" className="w-full">Iniciar sesión</Button>
         </form>
-        <p className="mt-4 text-center text-sm text-neutral-500">
-          ¿No tienes cuenta?{" "}
-          <Link href="/signup" className="text-neutral-900 underline">
-            Regístrate
-          </Link>
+        <p className="mt-5 text-center text-sm text-ink-muted">
+          ¿No tenés cuenta?{" "}
+          <Link href="/signup" className="font-semibold text-accent hover:underline">Registrate</Link>
         </p>
       </div>
     </div>
