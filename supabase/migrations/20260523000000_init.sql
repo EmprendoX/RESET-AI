@@ -1,7 +1,20 @@
 -- AI Coach MVP Schema
+-- Isolated in its own `ai_coach` schema so it can safely share a Supabase
+-- project with another app (RESET-HUB community) without colliding with `public`.
+-- NOTE: No trigger on auth.users — coach profile rows are bootstrapped from the
+-- app (see ensureCoachProfile in packages/db) to avoid clobbering the shared
+-- public.handle_new_user / on_auth_user_created trigger.
+
+-- Extensiones requeridas (idempotentes).
+-- pgcrypto: gen_random_uuid(). vector: embeddings para la base de conocimiento (Fase 3+).
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE SCHEMA IF NOT EXISTS ai_coach;
+GRANT USAGE ON SCHEMA ai_coach TO anon, authenticated, service_role;
 
 -- Users profile (extends auth.users)
-CREATE TABLE IF NOT EXISTS users_profile (
+CREATE TABLE IF NOT EXISTS ai_coach.users_profile (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   name TEXT,
@@ -11,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users_profile (
   last_login_at TIMESTAMPTZ
 );
 
-CREATE TABLE IF NOT EXISTS coach_profiles (
+CREATE TABLE IF NOT EXISTS ai_coach.coach_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT,
@@ -25,7 +38,7 @@ CREATE TABLE IF NOT EXISTS coach_profiles (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS onboarding_forms (
+CREATE TABLE IF NOT EXISTS ai_coach.onboarding_forms (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   answers_json JSONB NOT NULL DEFAULT '{}',
@@ -34,7 +47,7 @@ CREATE TABLE IF NOT EXISTS onboarding_forms (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS business_profiles (
+CREATE TABLE IF NOT EXISTS ai_coach.business_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   has_business BOOLEAN NOT NULL DEFAULT false,
@@ -49,7 +62,7 @@ CREATE TABLE IF NOT EXISTS business_profiles (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS goals (
+CREATE TABLE IF NOT EXISTS ai_coach.goals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -63,7 +76,7 @@ CREATE TABLE IF NOT EXISTS goals (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS conversations (
+CREATE TABLE IF NOT EXISTS ai_coach.conversations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT,
@@ -71,9 +84,9 @@ CREATE TABLE IF NOT EXISTS conversations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS ai_coach.messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  conversation_id UUID NOT NULL REFERENCES ai_coach.conversations(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
   content TEXT NOT NULL,
@@ -81,7 +94,7 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS memories (
+CREATE TABLE IF NOT EXISTS ai_coach.memories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
@@ -94,7 +107,7 @@ CREATE TABLE IF NOT EXISTS memories (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS recommendations (
+CREATE TABLE IF NOT EXISTS ai_coach.recommendations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
@@ -107,7 +120,7 @@ CREATE TABLE IF NOT EXISTS recommendations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS check_ins (
+CREATE TABLE IF NOT EXISTS ai_coach.check_ins (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   answers_json JSONB NOT NULL DEFAULT '{}',
@@ -116,7 +129,7 @@ CREATE TABLE IF NOT EXISTS check_ins (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS tasks (
+CREATE TABLE IF NOT EXISTS ai_coach.tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -128,7 +141,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS user_events (
+CREATE TABLE IF NOT EXISTS ai_coach.user_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   event_type TEXT NOT NULL,
@@ -141,7 +154,7 @@ CREATE TABLE IF NOT EXISTS user_events (
   idempotency_key TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS audit_logs (
+CREATE TABLE IF NOT EXISTS ai_coach.audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   action TEXT NOT NULL,
@@ -151,7 +164,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS feature_flags (
+CREATE TABLE IF NOT EXISTS ai_coach.feature_flags (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   key TEXT NOT NULL UNIQUE,
   enabled BOOLEAN NOT NULL DEFAULT true,
@@ -160,7 +173,7 @@ CREATE TABLE IF NOT EXISTS feature_flags (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS usage_counters (
+CREATE TABLE IF NOT EXISTS ai_coach.usage_counters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   day DATE NOT NULL,
@@ -171,72 +184,57 @@ CREATE TABLE IF NOT EXISTS usage_counters (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_goals_user_status ON goals(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_memories_user_active ON memories(user_id, is_active);
-CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_user_events_user ON user_events(user_id, occurred_at DESC);
-CREATE INDEX IF NOT EXISTS idx_recommendations_user_status ON recommendations(user_id, status);
-
--- Trigger: create profile on signup
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO users_profile (id, email, name)
-  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name');
-
-  INSERT INTO coach_profiles (user_id, name, memory_enabled)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'name', true);
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+CREATE INDEX IF NOT EXISTS idx_goals_user_status ON ai_coach.goals(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_memories_user_active ON ai_coach.memories(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON ai_coach.messages(conversation_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_user_events_user ON ai_coach.user_events(user_id, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_recommendations_user_status ON ai_coach.recommendations(user_id, status);
 
 -- RLS
-ALTER TABLE users_profile ENABLE ROW LEVEL SECURITY;
-ALTER TABLE coach_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE onboarding_forms ENABLE ROW LEVEL SECURITY;
-ALTER TABLE business_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE memories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE recommendations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE check_ins ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE feature_flags ENABLE ROW LEVEL SECURITY;
-ALTER TABLE usage_counters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.users_profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.coach_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.onboarding_forms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.business_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.memories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.recommendations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.check_ins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.user_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.feature_flags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_coach.usage_counters ENABLE ROW LEVEL SECURITY;
 
 -- Users can only access own data
-CREATE POLICY users_profile_own ON users_profile FOR ALL USING (id = auth.uid());
-CREATE POLICY coach_profiles_own ON coach_profiles FOR ALL USING (user_id = auth.uid());
-CREATE POLICY onboarding_forms_own ON onboarding_forms FOR ALL USING (user_id = auth.uid());
-CREATE POLICY business_profiles_own ON business_profiles FOR ALL USING (user_id = auth.uid());
-CREATE POLICY goals_own ON goals FOR ALL USING (user_id = auth.uid());
-CREATE POLICY conversations_own ON conversations FOR ALL USING (user_id = auth.uid());
-CREATE POLICY messages_own ON messages FOR ALL USING (user_id = auth.uid());
-CREATE POLICY memories_own ON memories FOR ALL USING (user_id = auth.uid());
-CREATE POLICY recommendations_own ON recommendations FOR ALL USING (user_id = auth.uid());
-CREATE POLICY check_ins_own ON check_ins FOR ALL USING (user_id = auth.uid());
-CREATE POLICY tasks_own ON tasks FOR ALL USING (user_id = auth.uid());
-CREATE POLICY user_events_own ON user_events FOR ALL USING (user_id = auth.uid());
-CREATE POLICY usage_counters_own ON usage_counters FOR ALL USING (user_id = auth.uid());
+CREATE POLICY users_profile_own ON ai_coach.users_profile FOR ALL USING (id = auth.uid());
+CREATE POLICY coach_profiles_own ON ai_coach.coach_profiles FOR ALL USING (user_id = auth.uid());
+CREATE POLICY onboarding_forms_own ON ai_coach.onboarding_forms FOR ALL USING (user_id = auth.uid());
+CREATE POLICY business_profiles_own ON ai_coach.business_profiles FOR ALL USING (user_id = auth.uid());
+CREATE POLICY goals_own ON ai_coach.goals FOR ALL USING (user_id = auth.uid());
+CREATE POLICY conversations_own ON ai_coach.conversations FOR ALL USING (user_id = auth.uid());
+CREATE POLICY messages_own ON ai_coach.messages FOR ALL USING (user_id = auth.uid());
+CREATE POLICY memories_own ON ai_coach.memories FOR ALL USING (user_id = auth.uid());
+CREATE POLICY recommendations_own ON ai_coach.recommendations FOR ALL USING (user_id = auth.uid());
+CREATE POLICY check_ins_own ON ai_coach.check_ins FOR ALL USING (user_id = auth.uid());
+CREATE POLICY tasks_own ON ai_coach.tasks FOR ALL USING (user_id = auth.uid());
+CREATE POLICY user_events_own ON ai_coach.user_events FOR ALL USING (user_id = auth.uid());
+CREATE POLICY usage_counters_own ON ai_coach.usage_counters FOR ALL USING (user_id = auth.uid());
 
 -- Audit logs: users see own, admins see all
-CREATE POLICY audit_logs_own ON audit_logs FOR SELECT USING (user_id = auth.uid() OR user_id IS NULL);
-CREATE POLICY audit_logs_insert ON audit_logs FOR INSERT WITH CHECK (true);
+CREATE POLICY audit_logs_own ON ai_coach.audit_logs FOR SELECT USING (user_id = auth.uid() OR user_id IS NULL);
+CREATE POLICY audit_logs_insert ON ai_coach.audit_logs FOR INSERT WITH CHECK (true);
 
 -- Feature flags: readable by all authenticated
-CREATE POLICY feature_flags_read ON feature_flags FOR SELECT TO authenticated USING (true);
+CREATE POLICY feature_flags_read ON ai_coach.feature_flags FOR SELECT TO authenticated USING (true);
+
+-- Table grants (RLS still enforced)
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ai_coach TO anon, authenticated, service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ai_coach TO anon, authenticated, service_role;
 
 -- Seed feature flags
-INSERT INTO feature_flags (key, enabled, description) VALUES
+INSERT INTO ai_coach.feature_flags (key, enabled, description) VALUES
   ('AI_COACH_ENABLED', true, 'Master switch'),
   ('AI_COACH_ONBOARDING_ENABLED', true, 'Onboarding flow'),
   ('AI_COACH_CHAT_ENABLED', true, 'Chat with coach'),

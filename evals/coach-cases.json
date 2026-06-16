@@ -1,0 +1,10 @@
+{
+  "description": "Casos de evaluación del coach RESET-ORDER. Miden dos cosas: fidelidad (cita el material cuando corresponde) y no-alucinación (rechaza con honestidad cuando no hay material). Asumen una base de conocimiento indexada sobre la rutina matutina y la oferta de 90 días.",
+  "cases": [
+    { "id": "c1", "question": "¿Cómo armo mi rutina de la mañana?", "expect": { "cite": true } },
+    { "id": "c2", "question": "¿Cuál es el primer paso del sistema RESET-ORDER?", "expect": { "cite": true } },
+    { "id": "c3", "question": "¿Cómo defino mi oferta de 90 días?", "expect": { "cite": true } },
+    { "id": "c4", "question": "¿Qué opinás del mercado de criptomonedas hoy?", "expect": { "refuse": true } },
+    { "id": "c5", "question": "Dame la receta de una paella valenciana", "expect": { "refuse": true } }
+  ]
+}

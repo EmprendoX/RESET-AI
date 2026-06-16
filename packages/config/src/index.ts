@@ -26,7 +26,7 @@ export function getDailyMessageLimit(): number {
 }
 
 export function getOpenAiModel(): string {
-  return process.env.OPENAI_MODEL ?? "gpt-4o";
+  return process.env.OPENAI_CHAT_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 }
 
 export { defaults };

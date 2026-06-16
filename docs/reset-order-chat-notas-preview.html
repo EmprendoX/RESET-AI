@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RESET-ORDER · Coach + Notas</title>
+<style>
+  :root{--bg:#07080b;--surface:#101218;--surface2:#161922;--surface3:#1d212c;
+    --border:#262b38;--bordersoft:#1c2029;--ink:#f4f6fb;--muted:#9aa3b4;--faint:#5e6678;
+    --accent:#2f7bff;--accentHi:#5b9bff;--accentLo:#1e5fe0;--success:#2fd486}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(900px 500px at 80% -10%,rgba(47,123,255,.14),transparent 60%)}
+  .wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),var(--surface);
+    border:1px solid var(--bordersoft);border-radius:1.25rem}
+  .grad{background:linear-gradient(135deg,var(--accentHi),var(--accentLo))}
+  .glow{box-shadow:0 10px 30px -12px rgba(47,123,255,.6)}
+  h2{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:4px}
+  .seg b{padding:6px 16px;border-radius:8px;font-size:13px}
+  .seg .on{background:var(--surface3)}
+  .seg .off{color:var(--muted);font-weight:500}
+  .toggle{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:7px 12px;font-size:12px;color:var(--muted);font-weight:700}
+  .split{display:flex;gap:16px}
+  .pane{flex:1;display:flex;flex-direction:column;min-width:0}
+  .notes{width:320px;flex:none}
+  .box{padding:16px;height:420px;display:flex;flex-direction:column}
+  .chathead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:16px}
+  .msgs{flex:1;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+  .m{max-width:80%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5}
+  .me{align-self:flex-end;color:#fff}
+  .them{align-self:flex-start;background:var(--surface2);border:1px solid var(--bordersoft)}
+  .acts{font-size:11px;color:var(--faint);display:flex;gap:12px;align-self:flex-start;padding-left:4px;margin-top:-4px}
+  .acts b{color:var(--accentHi);font-weight:600;cursor:pointer}
+  .input{margin-top:12px;display:flex;gap:8px}
+  .input input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--ink);font-size:13px}
+  .btn{border-radius:12px;font-weight:700;font-size:13px;padding:10px 16px;color:#fff;border:none;cursor:pointer}
+  .btn.sec{background:var(--surface2);border:1px solid var(--border);color:var(--ink)}
+  .pad{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--muted);height:96px}
+  .saved{border-top:1px solid var(--bordersoft);margin-top:14px;padding-top:12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .note{border:1px solid var(--bordersoft);background:var(--surface2);border-radius:12px;padding:10px 12px}
+  .note .t{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+  .note .c{font-size:11px;color:var(--muted);margin-top:2px}
+  .copy{font-size:11px;color:var(--faint);font-weight:600}
+  .cap{font-size:11px;color:var(--faint);text-align:center;margin-top:14px}
+  .small{font-size:11px;color:var(--success)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="seg"><b class="on">💬 Chat</b><b class="off">📝 Notas</b></div>
+    <button class="toggle">Ocultar notas →</button>
+  </div>
+
+  <div class="split">
+    <!-- CHAT -->
+    <div class="pane">
+      <div class="card box">
+        <div class="chathead">
+          <div class="ic grad glow">🧭</div>
+          <div><div style="font-weight:800">Coach RESET-ORDER</div><div class="small">● te da seguimiento</div></div>
+          <button class="btn sec" style="margin-left:auto">Guardar chat</button>
+        </div>
+        <div class="msgs">
+          <div class="m them">Llevás 12 días de racha — eso es constancia real. Hoy te falta el Bloque profundo. ¿Arrancamos?</div>
+          <div class="acts"><b>Copiar</b><b>→ A nota</b></div>
+          <div class="m me grad">Sí, pero estoy medio disperso. No sé por dónde empezar.</div>
+          <div class="m them">Una sola cosa a la vez. Tu tarea #1 es "Definir la oferta de los 90 días". Poné 25 minutos y escribí una versión imperfecta.</div>
+          <div class="acts"><b>Copiar</b><b>→ A nota</b></div>
+        </div>
+        <div class="input"><input value="Escribí tu mensaje…" /><button class="btn grad">Enviar</button></div>
+      </div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="pane notes">
+      <h2 style="display:flex;justify-content:space-between">📝 Bloc de notas <span style="color:var(--faint)">5 guardadas</span></h2>
+      <div class="card box">
+        <div class="pad">Pegá o escribí acá lo que quieras guardar…</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn grad" style="font-size:12px;padding:8px 14px">Guardar nota</button>
+          <button class="btn sec" style="font-size:12px;padding:8px 14px">Limpiar</button>
+        </div>
+        <div class="saved">
+          <div class="note"><div class="t">Mi porqué <span class="copy">Copiar</span></div><div class="c">Quiero orden para tener libertad, no para controlar todo…</div></div>
+          <div class="note"><div class="t">Conversación · Bloqueo <span class="copy">Copiar</span></div><div class="c">Coach: ¿Qué pasa cuando te sentás a definir la oferta?…</div></div>
+          <div class="note"><div class="t">Cierre del día — jueves <span class="copy">Copiar</span></div><div class="c">1) Cumplí reset y movimiento. 2) Me costó el bloque…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cap">En la compu: chat y bloc lado a lado. En el celu: el switch de arriba cambia entre Chat y Notas al instante. Cada mensaje se copia o se manda a una nota con un toque.</div>
+</div>
+</body>
+</html>
