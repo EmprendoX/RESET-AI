@@ -8,7 +8,7 @@
 -- Extensiones requeridas (idempotentes).
 -- pgcrypto: gen_random_uuid(). vector: embeddings para la base de conocimiento (Fase 3+).
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
 
 CREATE SCHEMA IF NOT EXISTS ai_coach;
 GRANT USAGE ON SCHEMA ai_coach TO anon, authenticated, service_role;
