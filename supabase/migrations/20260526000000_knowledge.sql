@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS ai_coach.kb_chunks (
   creator_id UUID NOT NULL REFERENCES ai_coach.creators(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   lesson_label TEXT,
-  embedding vector(1536),
+  embedding extensions.vector(1536),
   token_count INT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -33,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_kb_chunks_creator ON ai_coach.kb_chunks(creator_i
 CREATE INDEX IF NOT EXISTS idx_kb_sources_creator ON ai_coach.knowledge_sources(creator_id, created_at DESC);
 -- Índice vectorial (coseno). HNSW para buena recuperación.
 CREATE INDEX IF NOT EXISTS idx_kb_chunks_embedding
-  ON ai_coach.kb_chunks USING hnsw (embedding vector_cosine_ops);
+  ON ai_coach.kb_chunks USING hnsw (embedding extensions.vector_cosine_ops);
 
 ALTER TABLE ai_coach.knowledge_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_coach.kb_chunks ENABLE ROW LEVEL SECURITY;
@@ -55,11 +55,11 @@ CREATE POLICY kb_chunks_owner_manage ON ai_coach.kb_chunks
 -- del miembro pueda recuperar contexto del creador sin exponer toda la tabla.
 CREATE OR REPLACE FUNCTION ai_coach.match_kb_chunks(
   p_creator_id UUID,
-  p_query vector(1536),
+  p_query extensions.vector(1536),
   p_k INT DEFAULT 6
 )
 RETURNS TABLE (content TEXT, lesson_label TEXT, source_id UUID, similarity FLOAT)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ai_coach AS $$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ai_coach, extensions AS $$
   SELECT c.content, c.lesson_label, c.source_id,
          1 - (c.embedding <=> p_query) AS similarity
   FROM ai_coach.kb_chunks c
@@ -70,5 +70,5 @@ $$;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON ai_coach.knowledge_sources, ai_coach.kb_chunks
   TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION ai_coach.match_kb_chunks(UUID, vector, INT)
+GRANT EXECUTE ON FUNCTION ai_coach.match_kb_chunks(UUID, extensions.vector, INT)
   TO anon, authenticated, service_role;

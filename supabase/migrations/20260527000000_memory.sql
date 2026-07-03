@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS ai_coach.coach_memories (
   content TEXT NOT NULL,
   source TEXT,
   consent BOOLEAN NOT NULL DEFAULT false,
-  embedding vector(1536),
+  embedding extensions.vector(1536),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS ai_coach.coach_memories (
 CREATE INDEX IF NOT EXISTS idx_coach_mem_creator ON ai_coach.coach_memories(creator_id, scope);
 CREATE INDEX IF NOT EXISTS idx_coach_mem_member ON ai_coach.coach_memories(member_user_id);
 CREATE INDEX IF NOT EXISTS idx_coach_mem_embedding
-  ON ai_coach.coach_memories USING hnsw (embedding vector_cosine_ops);
+  ON ai_coach.coach_memories USING hnsw (embedding extensions.vector_cosine_ops);
 
 ALTER TABLE ai_coach.coach_memories ENABLE ROW LEVEL SECURITY;
 
@@ -40,11 +40,11 @@ CREATE POLICY coach_mem_member_manage ON ai_coach.coach_memories
 CREATE OR REPLACE FUNCTION ai_coach.match_coach_memories(
   p_creator_id UUID,
   p_member_user_id UUID,
-  p_query vector(1536),
+  p_query extensions.vector(1536),
   p_k INT DEFAULT 5
 )
 RETURNS TABLE (type TEXT, content TEXT, similarity FLOAT)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ai_coach AS $$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ai_coach, extensions AS $$
   SELECT m.type, m.content,
          1 - (m.embedding <=> p_query) AS similarity
   FROM ai_coach.coach_memories m
@@ -59,5 +59,5 @@ $$;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON ai_coach.coach_memories
   TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION ai_coach.match_coach_memories(UUID, UUID, vector, INT)
+GRANT EXECUTE ON FUNCTION ai_coach.match_coach_memories(UUID, UUID, extensions.vector, INT)
   TO anon, authenticated, service_role;
