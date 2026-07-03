@@ -1,0 +1,144 @@
+/* ==========================================================================
+   THE RESETE ORDER — Barra global (versión coach / RESET-AI)
+   Barra SUPERIOR fija con navegación cross-app de vuelta a RESET-ORDER.
+   Va arriba (no abajo) para no chocar con la navegación propia del coach.
+   Todo vive bajo #reset-shell-root: no toca los estilos internos de la app.
+   ========================================================================== */
+
+#reset-shell-root,
+#reset-shell-root * {
+  box-sizing: border-box;
+}
+
+/* Barra superior fija */
+.reset-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: calc(54px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 10px 0;
+  background: linear-gradient(180deg, rgba(11, 13, 18, 0.96), rgba(11, 13, 18, 0.88));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.reset-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.reset-brand img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(255, 30, 30, 0.3));
+}
+
+.reset-brand b {
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.reset-brand b span {
+  background: linear-gradient(135deg, #ff4d4d, #ff1e1e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Tabs */
+.reset-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-left: auto;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.reset-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.reset-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.reset-tab svg {
+  width: 19px;
+  height: 19px;
+  opacity: 0.9;
+}
+
+.reset-tab:hover {
+  color: #fff;
+}
+
+.reset-tab.is-active {
+  color: #fff;
+  font-weight: 600;
+  background: rgba(30, 77, 255, 0.22);
+}
+
+.reset-tab.is-active svg {
+  opacity: 1;
+}
+
+.reset-tab:active {
+  transform: scale(0.95);
+}
+
+/* En pantallas chicas, ocultar el texto de marca para que entren las tabs. */
+@media (max-width: 560px) {
+  .reset-brand b {
+    display: none;
+  }
+  .reset-tab {
+    padding: 5px 7px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Empujar la app del coach hacia abajo para no quedar tapada por la barra,
+   y reubicar sus elementos sticky (sidebar desktop + header mobile) para que
+   queden DEBAJO de la barra. No se oculta nada de la navegación del coach.
+   -------------------------------------------------------------------------- */
+body.reset-shell-toppad {
+  padding-top: calc(54px + env(safe-area-inset-top, 0px));
+}
+
+body.reset-shell-toppad aside.sticky {
+  top: calc(54px + env(safe-area-inset-top, 0px)) !important;
+  height: calc(100vh - 54px - env(safe-area-inset-top, 0px)) !important;
+}
+
+body.reset-shell-toppad header.sticky {
+  top: calc(54px + env(safe-area-inset-top, 0px)) !important;
+}
