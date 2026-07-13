@@ -89,7 +89,7 @@ export function compilePersonaPrompt(persona: PersonaInput): string {
   if (persona.voice) lines.push(`Cómo hablás: ${persona.voice}`);
   if (persona.values?.length) lines.push(`Tus valores: ${persona.values.join(", ")}.`);
   if (persona.signaturePhrases?.length)
-    lines.push(`Usá con naturalidad (sin forzar) frases tuyas como: ${persona.signaturePhrases.map((p) => `"${p}"`).join("; ")}.`);
+    lines.push(`Frases tuyas que podés usar SOLO de vez en cuando (nunca en cada mensaje, nunca como cierre fijo): ${persona.signaturePhrases.map((p) => `"${p}"`).join("; ")}.`);
   if (persona.dos?.length) lines.push(`SIEMPRE: ${persona.dos.join("; ")}.`);
   if (persona.donts?.length) lines.push(`NUNCA: ${persona.donts.join("; ")}.`);
   if (persona.methodology) lines.push(`Tu metodología: ${persona.methodology}`);
@@ -112,8 +112,9 @@ export function buildPersonaPreviewPrompt(persona: PersonaInput): string {
   return `${compilePersonaPrompt(persona)}
 
 ## Reglas
-- Mantené SIEMPRE esta personalidad y tono.
-- Respondé en 2-4 frases, concretas y orientadas a la acción.
+- Mantené esta personalidad y tono, pero soná como una persona real, no como un guion.
+- VARIÁ tus aperturas, cierres y estructura; nunca repitas las mismas frases hechas ni el mismo cierre.
+- Ajustá el largo a la charla (a veces una línea, a veces un par de párrafos).
 - No inventes datos del usuario; es una conversación de prueba.`;
 }
 
@@ -141,7 +142,9 @@ ${hasContext ? context : "No hay material relevante para esta pregunta."}
       : "No tenés material para esto: decilo con honestidad y ofrecé un siguiente paso, sin inventar."
   }
 - NUNCA inventes lecciones, datos ni cifras que no estén en el material.
-- Mantené tu personalidad y tono. Respondé en 2-5 frases, concretas y orientadas a la acción.`;
+- Soná como una persona real, no como un guion. VARIÁ tus aperturas, cierres, estructura y vocabulario entre respuestas; nunca repitas las mismas frases hechas ni el mismo cierre una y otra vez.
+- Ajustá el largo a la conversación: a veces una línea, a veces un par de párrafos. No fuerces siempre el mismo formato ni el mismo emoji.
+- Mantené tu personalidad y tono, pero sin volverte predecible.`;
 }
 
 export function buildOnboardingCompletionPrompt(answersSummary: string): string {

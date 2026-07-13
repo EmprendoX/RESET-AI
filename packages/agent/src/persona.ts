@@ -16,7 +16,9 @@ export async function previewPersonaReply(
   const openai = getOpenAI();
   const res = await openai.chat.completions.create({
     model: getOpenAiModel(),
-    temperature: 0.7,
+    temperature: 0.85,
+    frequency_penalty: 0.4,
+    presence_penalty: 0.3,
     messages: [
       { role: "system", content: buildPersonaPreviewPrompt(persona) },
       { role: "user", content: message },

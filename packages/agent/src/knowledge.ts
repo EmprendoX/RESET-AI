@@ -212,7 +212,9 @@ export async function answerWithKnowledge(params: {
   const openai = getOpenAIClient();
   const res = await openai.chat.completions.create({
     model: getOpenAiModel(),
-    temperature: 0.6,
+    temperature: 0.85,
+    frequency_penalty: 0.4,
+    presence_penalty: 0.3,
     messages: [
       { role: "system", content: system },
       ...history.slice(-6).map((m) => ({ role: m.role, content: m.content })),
