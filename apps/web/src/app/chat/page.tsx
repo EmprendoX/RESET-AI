@@ -22,6 +22,12 @@ export default function ChatWorkspace() {
   const [showNotes, setShowNotes] = useState(true); // solo controla desktop
   const [draft, setDraft] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const notes = useNotes();
 
@@ -111,6 +117,82 @@ export default function ChatWorkspace() {
     setTimeout(() => setCopied(null), 1400);
   }
 
+  // --- Voz: grabar + transcribir (Whisper) ---
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        await transcribe(blob);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setRecording(true);
+    } catch {
+      setRecording(false);
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  }
+
+  async function transcribe(blob: Blob) {
+    setTranscribing(true);
+    try {
+      const form = new FormData();
+      form.append("audio", blob, "audio.webm");
+      const res = await fetch("/api/coach/transcribe", { method: "POST", body: form });
+      if (res.ok) {
+        const d = await res.json();
+        if (d.text) setInput((prev) => (prev ? `${prev} ${d.text}` : d.text));
+      }
+    } catch {}
+    setTranscribing(false);
+  }
+
+  // --- Voz: escuchar la respuesta del coach (TTS) ---
+  async function speak(text: string, id: string) {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (speakingId === id) {
+      setSpeakingId(null);
+      return;
+    }
+    setSpeakingId(id);
+    try {
+      const res = await fetch("/api/coach/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        setSpeakingId(null);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        setSpeakingId(null);
+        URL.revokeObjectURL(url);
+      };
+      await audio.play();
+    } catch {
+      setSpeakingId(null);
+    }
+  }
+
   const chatVisible = pane === "chat";
   const notesVisible = pane === "notas";
 
@@ -192,6 +274,11 @@ export default function ChatWorkspace() {
                       {copied === id ? "✓ copiado" : "Copiar"}
                     </button>
                     <button onClick={() => toDraft(m.content)} className="hover:text-accent">→ A nota</button>
+                    {m.role === "assistant" && (
+                      <button onClick={() => speak(m.content, id)} className="hover:text-accent">
+                        {speakingId === id ? "⏹ Detener" : "🔊 Escuchar"}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -222,9 +309,24 @@ export default function ChatWorkspace() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribí tu mensaje…"
+              placeholder={
+                transcribing ? "Transcribiendo tu audio…" : recording ? "Grabando… tocá el micro para terminar" : "Escribí o grabá tu mensaje…"
+              }
               className="flex-1 rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent/70 focus:ring-2 focus:ring-accent/20"
             />
+            <button
+              type="button"
+              onClick={recording ? stopRecording : startRecording}
+              disabled={transcribing || typing}
+              title={recording ? "Detener y transcribir" : "Grabar mensaje de voz"}
+              className={`grid w-12 shrink-0 place-items-center rounded-xl border text-lg transition ${
+                recording
+                  ? "border-danger bg-danger/10 text-danger ro-pulse"
+                  : "border-border bg-surface-2 text-ink-muted hover:border-accent/60 hover:text-accent"
+              } disabled:opacity-50`}
+            >
+              {transcribing ? "…" : recording ? "⏺" : "🎤"}
+            </button>
             <Button type="submit" disabled={typing}>Enviar</Button>
           </form>
         </section>
