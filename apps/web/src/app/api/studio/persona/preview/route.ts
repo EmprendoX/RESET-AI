@@ -25,6 +25,14 @@ export async function POST(request: Request) {
       donts: p.donts ?? null,
       methodology: p.methodology ?? null,
       sampleReplies: p.sample_replies ?? null,
+      objective: p.objective ?? null,
+      role: p.role ?? null,
+      targetAudience: p.target_audience ?? null,
+      businessContext: p.business_context ?? null,
+      instructions: p.instructions ?? null,
+      workflow: p.workflow ?? null,
+      outputFormat: p.output_format ?? null,
+      qualityCriteria: p.quality_criteria ?? null,
     };
 
     const reply = await previewPersonaReply(persona, parsed.data.message);

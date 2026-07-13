@@ -56,6 +56,15 @@ export interface PersonaInput {
   donts?: string[] | null;
   methodology?: string | null;
   sampleReplies?: { q: string; a: string }[] | null;
+  // --- Módulos del constructor de agentes (aditivos, todos opcionales) ---
+  objective?: string | null;
+  role?: string | null;
+  targetAudience?: string | null;
+  businessContext?: string | null;
+  instructions?: string | null;
+  workflow?: string | null;
+  outputFormat?: string | null;
+  qualityCriteria?: string[] | null;
 }
 
 function toneAdjectives(tone: PersonaInput["tone"]): string {
@@ -72,6 +81,10 @@ function toneAdjectives(tone: PersonaInput["tone"]): string {
 export function compilePersonaPrompt(persona: PersonaInput): string {
   const lines: string[] = [];
   lines.push(`Actúas como "${persona.coachName}"${persona.tagline ? ` — ${persona.tagline}` : ""}.`);
+  if (persona.role) lines.push(`Tu rol: ${persona.role}`);
+  if (persona.objective) lines.push(`Tu objetivo: ${persona.objective}`);
+  if (persona.targetAudience) lines.push(`A quién ayudás: ${persona.targetAudience}`);
+  if (persona.businessContext) lines.push(`Contexto del negocio: ${persona.businessContext}`);
   lines.push(`Tu tono es: ${toneAdjectives(persona.tone)}.`);
   if (persona.voice) lines.push(`Cómo hablás: ${persona.voice}`);
   if (persona.values?.length) lines.push(`Tus valores: ${persona.values.join(", ")}.`);
@@ -80,6 +93,11 @@ export function compilePersonaPrompt(persona: PersonaInput): string {
   if (persona.dos?.length) lines.push(`SIEMPRE: ${persona.dos.join("; ")}.`);
   if (persona.donts?.length) lines.push(`NUNCA: ${persona.donts.join("; ")}.`);
   if (persona.methodology) lines.push(`Tu metodología: ${persona.methodology}`);
+  if (persona.instructions) lines.push(`Cómo trabajás (instrucciones): ${persona.instructions}`);
+  if (persona.workflow) lines.push(`Flujo que seguís paso a paso: ${persona.workflow}`);
+  if (persona.outputFormat) lines.push(`Formato de tus respuestas: ${persona.outputFormat}`);
+  if (persona.qualityCriteria?.length)
+    lines.push(`Antes de responder, verificá: ${persona.qualityCriteria.join("; ")}.`);
   if (persona.sampleReplies?.length) {
     lines.push("Ejemplos de cómo respondés (imitá el estilo, no copies literal):");
     for (const ex of persona.sampleReplies.slice(0, 4)) {

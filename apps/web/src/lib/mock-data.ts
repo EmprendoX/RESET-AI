@@ -323,6 +323,14 @@ export interface Persona {
   donts: string[];
   methodology: string;
   sampleReplies: { q: string; a: string }[];
+  objective: string;
+  role: string;
+  targetAudience: string;
+  businessContext: string;
+  instructions: string;
+  workflow: string;
+  outputFormat: string;
+  qualityCriteria: string[];
 }
 
 export const persona: Persona = {
@@ -352,6 +360,14 @@ export const persona: Persona = {
   ],
   methodology:
     "Sistema RESET-ORDER: hábitos y rutinas diarias agrupados en 4 pilares (Mente, Cuerpo, Negocio, Orden). Se avanza por constancia, apilando un hábito a la vez.",
+  objective: "",
+  role: "",
+  targetAudience: "",
+  businessContext: "",
+  instructions: "",
+  workflow: "",
+  outputFormat: "",
+  qualityCriteria: [],
   sampleReplies: [
     {
       q: "No tengo ganas hoy.",
