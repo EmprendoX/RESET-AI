@@ -10,11 +10,36 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Prototipo: sin backend, entra directo al panel.
-    router.push("/");
+    if (loading) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error ?? "No pudimos iniciar sesión. Revisá tu correo y contraseña.");
+        setLoading(false);
+        return;
+      }
+
+      // Sesión creada: entramos al panel.
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Error de conexión. Intentá de nuevo.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -32,13 +57,28 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium">Correo</label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tucorreo@ejemplo.com"
+              required
+            />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium">Contraseña</label>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
           </div>
-          <Button type="submit" className="w-full">Iniciar sesión</Button>
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Entrando…" : "Iniciar sesión"}
+          </Button>
         </form>
         <p className="mt-5 text-center text-sm text-ink-muted">
           ¿No tenés cuenta?{" "}

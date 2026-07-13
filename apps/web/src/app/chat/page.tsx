@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@ai-coach/ui";
-import { quickActions, sampleConversation, type ChatMessage } from "@/lib/mock-data";
+import { quickActions, type ChatMessage } from "@/lib/mock-data";
 import { addNote, useNotes } from "@/lib/notes-store";
 
 const CANNED =
@@ -14,7 +14,8 @@ type Citation = { source: string; lesson: string };
 type Msg = ChatMessage & { citations?: Citation[] };
 
 export default function ChatWorkspace() {
-  const [messages, setMessages] = useState<Msg[]>(sampleConversation);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [pane, setPane] = useState<Pane>("chat"); // solo controla mobile
@@ -28,6 +29,35 @@ export default function ChatWorkspace() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
+  // Carga el historial real de la última conversación al abrir (persistente entre sesiones).
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/conversations");
+        if (!r.ok) return;
+        const { conversations } = await r.json();
+        const latest = conversations?.[0];
+        if (!latest) return;
+        const r2 = await fetch(`/api/conversations/${latest.id}`);
+        if (!r2.ok) return;
+        const { messages: msgs } = await r2.json();
+        if (cancel) return;
+        setConversationId(latest.id);
+        setMessages(
+          (msgs ?? []).map((m: { role: string; content: string; metadata_json?: { citations?: Citation[] } }) => ({
+            role: m.role === "assistant" ? "assistant" : "user",
+            content: m.content,
+            citations: m.metadata_json?.citations ?? [],
+          }))
+        );
+      } catch {}
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, []);
+
   async function send(text: string) {
     if (!text.trim() || typing) return;
     const history = messages.map((m) => ({ role: m.role, content: m.content }));
@@ -39,11 +69,12 @@ export default function ChatWorkspace() {
       const res = await fetch("/api/coach/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({ message: text, history, conversation_id: conversationId }),
       });
       if (res.ok) {
         const d = await res.json();
         if (d.reply) {
+          if (d.conversation_id) setConversationId(d.conversation_id);
           setMessages((p) => [...p, { role: "assistant", content: d.reply, citations: d.citations ?? [] }]);
           setTyping(false);
           return;

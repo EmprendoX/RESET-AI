@@ -5,14 +5,24 @@ import { getDailyMessageLimit } from "@ai-coach/config";
 import { answerWithKnowledge } from "@ai-coach/agent";
 import type { PersonaInput } from "@ai-coach/prompts";
 
+function __coachLog(line: string) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require("fs");
+    fs.appendFileSync(process.cwd() + "/coach-debug.log", new Date().toISOString() + " " + line + "\n");
+  } catch {}
+}
+
 interface HistoryItem {
   role: "user" | "assistant";
   content: string;
 }
 
 export async function POST(request: Request) {
+  __coachLog("ask:hit");
   try {
     const user = await requireUser();
+    __coachLog("ask:user " + user.id);
     const body = await request.json();
     const message = typeof body?.message === "string" ? body.message.slice(0, 4000) : "";
     if (!message.trim()) {
@@ -28,6 +38,9 @@ export async function POST(request: Request) {
           )
           .slice(-6)
       : [];
+
+    let conversationId =
+      typeof body?.conversation_id === "string" ? body.conversation_id : undefined;
 
     const supabase = await createClient();
 
@@ -64,6 +77,14 @@ export async function POST(request: Request) {
           donts: row.donts,
           methodology: row.methodology,
           sampleReplies: row.sample_replies,
+          objective: row.objective,
+          role: row.role,
+          targetAudience: row.target_audience,
+          businessContext: row.business_context,
+          instructions: row.instructions,
+          workflow: row.workflow,
+          outputFormat: row.output_format,
+          qualityCriteria: row.quality_criteria,
         }
       : { coachName: "Coach RESET-ORDER" };
 
@@ -91,8 +112,44 @@ export async function POST(request: Request) {
       })
     );
 
-    return NextResponse.json({ reply: answer.content, citations: answer.citations });
+    // Persistencia del historial (RLS: user_id = auth.uid()). No bloquea la respuesta si falla.
+    try {
+      if (!conversationId) {
+        const { data: conv } = await supabase
+          .from("conversations")
+          .insert({ user_id: user.id, title: message.slice(0, 50) })
+          .select("id")
+          .single();
+        conversationId = conv?.id as string | undefined;
+      }
+      if (conversationId) {
+        await supabase.from("messages").insert([
+          { conversation_id: conversationId, user_id: user.id, role: "user", content: message },
+          {
+            conversation_id: conversationId,
+            user_id: user.id,
+            role: "assistant",
+            content: answer.content,
+            metadata_json: { citations: answer.citations },
+          },
+        ]);
+        await supabase
+          .from("conversations")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", conversationId);
+      }
+    } catch (e) {
+      __coachLog("ask:persist-err " + (e instanceof Error ? e.message : String(e)));
+    }
+
+    __coachLog("ask:ok len=" + (answer.content?.length ?? 0) + " chunks=" + answer.chunksUsed);
+    return NextResponse.json({
+      reply: answer.content,
+      citations: answer.citations,
+      conversation_id: conversationId,
+    });
   } catch (err) {
+    __coachLog("ask:ERR " + (err instanceof Error ? (err.stack ?? err.message) : String(err)));
     const msg = err instanceof Error ? err.message : "Error";
     const status = msg.includes("OPENAI_API_KEY") ? 503 : 401;
     return NextResponse.json({ error: msg }, { status });

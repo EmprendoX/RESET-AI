@@ -36,6 +36,7 @@ export default function PersonaBuilder() {
   const [p, setP] = useState<Persona>(seed);
   const [pane, setPane] = useState<Pane>("config");
   const [saved, setSaved] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
   const [phrase, setPhrase] = useState("");
   const [chat, setChat] = useState<ChatMessage[]>([
     { role: "user", content: "No tengo ganas hoy." },
@@ -70,6 +71,14 @@ export default function PersonaBuilder() {
       donts: x.donts,
       methodology: x.methodology,
       sample_replies: x.sampleReplies,
+      objective: x.objective,
+      role: x.role,
+      target_audience: x.targetAudience,
+      business_context: x.businessContext,
+      instructions: x.instructions,
+      workflow: x.workflow,
+      output_format: x.outputFormat,
+      quality_criteria: x.qualityCriteria.filter((s) => s.trim()),
     };
   }
 
@@ -110,15 +119,23 @@ export default function PersonaBuilder() {
   }
 
   async function save() {
+    setSaveErr(null);
     try {
-      await fetch("/api/studio/persona", {
+      const res = await fetch("/api/studio/persona", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(toPayload(p)),
       });
-    } catch {}
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setSaveErr(d?.error ? `No se guardó: ${d.error}` : `No se guardó (HTTP ${res.status})`);
+        return;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1800);
+    } catch (e) {
+      setSaveErr(`No se guardó: ${e instanceof Error ? e.message : "error de red"}`);
+    }
   }
 
   return (
@@ -135,6 +152,7 @@ export default function PersonaBuilder() {
         </div>
         <div className="flex items-center gap-3">
           {saved && <span className="text-sm text-success">✓ Guardado</span>}
+          {saveErr && <span className="text-sm text-danger">{saveErr}</span>}
           <Button onClick={save}>Guardar persona</Button>
         </div>
       </div>
@@ -233,6 +251,51 @@ export default function PersonaBuilder() {
           <Card>
             <SectionLabel>Metodología</SectionLabel>
             <textarea value={p.methodology} onChange={(e) => set("methodology", e.target.value)} rows={3} className={inputCls} />
+          </Card>
+
+          <Card>
+            <SectionLabel>Objetivo y rol</SectionLabel>
+            <Field label="Objetivo del agente (qué problema resuelve)">
+              <textarea value={p.objective} onChange={(e) => set("objective", e.target.value)} rows={2} className={inputCls} />
+            </Field>
+            <Field label="Rol / identidad (quién es)">
+              <input value={p.role} onChange={(e) => set("role", e.target.value)} className={inputCls} />
+            </Field>
+          </Card>
+
+          <Card>
+            <SectionLabel>Público y contexto</SectionLabel>
+            <Field label="Público objetivo (a quién ayuda)">
+              <textarea value={p.targetAudience} onChange={(e) => set("targetAudience", e.target.value)} rows={2} className={inputCls} />
+            </Field>
+            <Field label="Contexto del negocio">
+              <textarea value={p.businessContext} onChange={(e) => set("businessContext", e.target.value)} rows={3} className={inputCls} />
+            </Field>
+          </Card>
+
+          <Card>
+            <SectionLabel>Instrucciones y flujo</SectionLabel>
+            <Field label="Instrucciones (cómo debe trabajar)">
+              <textarea value={p.instructions} onChange={(e) => set("instructions", e.target.value)} rows={3} className={inputCls} />
+            </Field>
+            <Field label="Flujo de trabajo (paso a paso)">
+              <textarea value={p.workflow} onChange={(e) => set("workflow", e.target.value)} rows={3} className={inputCls} />
+            </Field>
+          </Card>
+
+          <Card>
+            <SectionLabel>Formato y calidad</SectionLabel>
+            <Field label="Formato de salida (Markdown, WhatsApp, lista, etc.)">
+              <input value={p.outputFormat} onChange={(e) => set("outputFormat", e.target.value)} className={inputCls} />
+            </Field>
+            <Field label="Criterios de calidad (uno por línea)">
+              <textarea
+                value={p.qualityCriteria.join("\n")}
+                onChange={(e) => set("qualityCriteria", e.target.value.split("\n"))}
+                rows={3}
+                className={inputCls}
+              />
+            </Field>
           </Card>
         </div>
 

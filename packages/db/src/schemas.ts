@@ -119,6 +119,15 @@ export const personaSchema = z.object({
     .array(z.object({ q: z.string(), a: z.string() }))
     .max(10)
     .optional(),
+  // --- Módulos del constructor de agentes (aditivos, todos opcionales) ---
+  objective: z.string().max(500).optional().nullable(),
+  role: z.string().max(300).optional().nullable(),
+  target_audience: z.string().max(800).optional().nullable(),
+  business_context: z.string().max(2000).optional().nullable(),
+  instructions: z.string().max(2000).optional().nullable(),
+  workflow: z.string().max(2000).optional().nullable(),
+  output_format: z.string().max(300).optional().nullable(),
+  quality_criteria: z.array(z.string().max(200)).max(10).optional(),
   is_published: z.boolean().optional(),
 });
 
